@@ -2557,6 +2557,54 @@ By default the module will be shown if any of the following conditions are met:
 symbol = '🌟 '
 ```
 
+## Jujutsu Status
+
+The `jj_status` module shows the current status of a [Jujutsu](https://github.com/martinvonz/jj) repository.
+
+> [!TIP]
+> This module is disabled by default.
+> To enable it, set `disabled` to `false` in your configuration file.
+
+### Options
+
+| Option                | Default                                                                                        | Description                                                                               |
+| --------------------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `symbol`              | `'jj '`                                                                                        | The symbol used before the jj status.                                                     |
+| `style`               | `'bold purple'`                                                                                | The style for the module.                                                                 |
+| `format`              | `'[$symbol$change_id]($style)( [$bookmarks]($style))([ $conflicted$divergent$hidden]($style)) '` | The format for the module.                                                                |
+| `truncation_length`   | `8`                                                                                            | Truncates the change id to `N` graphemes.                                                 |
+| `truncation_symbol`   | `'…'`                                                                                          | The symbol used to indicate a change id was truncated.                                    |
+| `conflicted`          | `'×'`                                                                                          | The symbol shown when the current change has conflicts.                                   |
+| `divergent`           | `'?'`                                                                                          | The symbol shown when the current change is divergent.                                    |
+| `hidden`              | `'◌'`                                                                                          | The symbol shown when the current change is hidden.                                       |
+| `ignore_working_copy` | `true`                                                                                         | Skip auto-snapshotting for faster prompts. May show slightly stale data.                  |
+| `disabled`            | `true`                                                                                         | Disables the `jj_status` module.                                                          |
+
+### Variables
+
+| Variable   | Example    | Description                                              |
+| ---------- | ---------- | -------------------------------------------------------- |
+| change_id  | `kxmynpvq…` | The current change id (truncated)                        |
+| bookmarks  | `main`     | The bookmarks pointing to the current change             |
+| conflicted | `×`        | Displays `conflicted` when change has conflicts          |
+| divergent  | `?`        | Displays `divergent` when change is divergent            |
+| hidden     | `◌`        | Displays `hidden` when change is hidden                  |
+| symbol     |            | Mirrors the value of option `symbol`                     |
+| style\*    |            | Mirrors the value of option `style`                      |
+
+*: This variable can only be used as a part of a style string
+
+### Example
+
+```toml
+# ~/.config/starship.toml
+
+[jj_status]
+disabled = false
+symbol = '🦎 '
+truncation_length = 4
+```
+
 ## Jobs
 
 The `jobs` module shows the current number of jobs running.

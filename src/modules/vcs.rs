@@ -25,6 +25,7 @@ pub fn module<'a>(context: &'a Context) -> Option<Module<'a>> {
         Vcs::Fossil => config.fossil_modules,
         Vcs::Git => config.git_modules,
         Vcs::Hg => config.hg_modules,
+        Vcs::Jujutsu => config.jj_modules,
         Vcs::Pijul => config.pijul_modules,
     };
 
@@ -64,6 +65,7 @@ pub fn discover_repo_root<'a>(context: &'a Context, vcs: Vcs) -> Option<Cow<'a, 
             &[".fslckout"]
         }),
         Vcs::Hg => scan.set_folders(&[".hg"]),
+        Vcs::Jujutsu => scan.set_folders(&[".jj"]),
         Vcs::Pijul => scan.set_folders(&[".pijul"]),
         Vcs::Git => return context.get_repo().ok().map(|r| r.repo.path().into()),
     };
@@ -77,6 +79,7 @@ pub enum Vcs {
     Git,
     // NOTE: uses `hg` to correspond to existing `hg_branch` module
     Hg,
+    Jujutsu,
     Pijul,
 }
 
@@ -88,6 +91,7 @@ impl<'a> TryFrom<&'a str> for Vcs {
             "fossil" => Ok(Self::Fossil),
             "git" => Ok(Self::Git),
             "hg" | "mercurial" => Ok(Self::Hg),
+            "jj" | "jujutsu" => Ok(Self::Jujutsu),
             "pijul" => Ok(Self::Pijul),
             _ => Err(value),
         }
@@ -193,6 +197,24 @@ mod tests {
     }
 
     #[test]
+    fn detect_jj() -> io::Result<()> {
+        with_marker(
+            "jj",
+            FixtureProvider::Jujutsu,
+            Some(format!("{}", Color::Green.bold().paint("test "))),
+        )
+    }
+
+    #[test]
+    fn detect_jj_alias_jujutsu() -> io::Result<()> {
+        with_marker(
+            "jujutsu",
+            FixtureProvider::Jujutsu,
+            Some(format!("{}", Color::Green.bold().paint("test "))),
+        )
+    }
+
+    #[test]
     fn invalid_vcs_is_none() -> io::Result<()> {
         with_marker("does_not_exists", FixtureProvider::Fossil, None)
     }
@@ -210,6 +232,12 @@ mod tests {
                 std::fs::create_dir(repo_dir.path().join(".hg"))?;
                 repo_dir
             }
+            // Custom handling of Jujutsu because we only care to detect the repo root, not run `jj` commands
+            FixtureProvider::Jujutsu => {
+                let repo_dir = tempfile::tempdir()?;
+                std::fs::create_dir(repo_dir.path().join(".jj"))?;
+                repo_dir
+            }
             _ => fixture_repo(fixture)?,
         };
 
@@ -220,6 +248,7 @@ mod tests {
             fossil_modules = "${custom.test}"
             git_modules = "${custom.test}"
             hg_modules = "${custom.test}"
+            jj_modules = "${custom.test}"
             pijul_modules = "${custom.test}"
 
             // Inserting the `custom.test` module to have something printed that we control
